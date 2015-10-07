@@ -5,6 +5,16 @@ $(document).ready( function() {
 		// get the value of the tags the user submitted
 		var tags = $(this).find("input[name='tags']").val();
 		getUnanswered(tags);
+
+		
+	});
+	$('.inspiration-getter').submit( function(event){
+
+		$('.results').html('');
+		var inspiration = $(this).find("input[name='answerers']").val();
+		console.log(inspiration);
+		getInspiration(inspiration);
+
 	});
 });
 
@@ -37,6 +47,37 @@ var showQuestion = function(question) {
 							'</p>' +
  							'<p>Reputation: ' + question.owner.reputation + '</p>'
 	);
+
+	return result;
+};
+
+var showAnswerers = function(question) { 
+	
+	
+	var result = $('.templates .answerers').clone();
+	
+	var questionElem = result.find('.answerers-text a');
+	questionElem.attr('href', question.user.link);    
+	questionElem.text(question.user.display_name);     
+	
+
+	var questionElemImg = result.find('.profileimage img');
+	questionElemImg.attr('src', question.user.profile_image);    
+
+	var acceptRate = result.find('.accept-rate');
+	acceptRate.text(question.user.accept_rate);
+
+
+	var reputation = result.find('.reputation');
+	reputation.text(question.user.reputation);			
+
+	
+	var score = result.find('.score');
+	score.text(question.score);			
+
+	
+	var viewed = result.find('.postcount');
+	viewed.text(question.post_count);			
 
 	return result;
 };
@@ -79,6 +120,39 @@ var getUnanswered = function(tags) {
 
 		$.each(result.items, function(i, item) {
 			var question = showQuestion(item);
+			$('.results').append(question);
+		});
+	})
+	.fail(function(jqXHR, error, errorThrown){
+		var errorElem = showError(error);
+		$('.search-results').append(errorElem);
+	});
+};
+
+var getInspiration = function(tags) {
+	
+	
+	var request = {tagged: tags,
+								site: 'stackoverflow',
+								order: 'desc',
+								sort: 'creation'};
+	var inputTag = $('input[name=answerers]').val();
+
+	var myUrl = 'http://api.stackexchange.com/2.2/tags/'+inputTag+'/top-answerers/all_time';
+	
+	var result = $.ajax({
+		url: myUrl,
+		data: request,
+		dataType: "jsonp",
+		type: "GET",
+		})
+	.done(function(result){
+		var searchResults = showSearchResults(request.tagged, result.items.length);
+
+		$('.search-results').html(searchResults);
+
+		$.each(result.items, function(i, item) {
+			var question = showAnswerers(item);
 			$('.results').append(question);
 		});
 	})
